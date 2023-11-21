@@ -1,0 +1,69 @@
+* commands
+** pgbouncer console
+*** connection command
+
+#+begin_src shell
+kubectl exec -it $(kubectl get pods -l app=pgbouncer --output name) -- psql --port 6432 --username=pgbouncer --no-password pgbouncer
+#+end_src
+
+*** show sessions
+
+#+begin_src
+show clients;
+#+end_src
+
+*** show pool mode
+
+#+begin_src
+show pools;
+#+end_src
+
+** pgbouncer
+
+*** SIGINT
+
+#+begin_src shell
+kubectl exec -it $(kubectl get pods -l app=pgbouncer --output name) -- kill -s SIGINT 1
+#+end_src
+
+** client
+*** connection
+
+#+begin_src shell
+kubectl exec -it sleep -- psql postgresql://postgres:postgres@pgbouncer:6432
+#+end_src
+
+*** sleep
+#+begin_src shell
+kubectl exec -it sleep -- apk update
+kubectl exec -it sleep -- apk add postgresql-client
+#+end_src
+
+
+#+begin_src shell
+kubectl exec -it sleep -- psql postgresql://postgres:postgres@pgbouncer:6432 -c 'select pg_sleep(30)'
+#+end_src
+
+* conclusions
+
+** lifecycle
+
+configuring a prestop lifehook in the container does not work because kubernetes
+will execute send the SIGTERM signal immediately afterwards.
+
+#+begin_src yaml
+lifecycle:
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "kill -s SIGINT 1"]
+#+end_src
+
+* proposals
+** pause and add a sleep in the prestop command.
+
+#+begin_src yaml
+lifecycle:
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "kill -s USR1 1 ; sleep 15s"]
+#+end_src

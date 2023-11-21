@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sleep
+spec:
+  containers:
+  - name: sleep
+    image: ghcr.io/augustfengd/augustfeng.app/sleep:latest
